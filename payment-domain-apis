@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payments Domain API Overview (Public)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; color:#222; line-height:1.4; }
+    h1, h2 { font-weight:600; margin: 0 0 12px; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.2rem; margin-top:32px; }
+    table { border-collapse: collapse; width:100%; margin-top:12px; }
+    th, td { border:1px solid #ccc; padding:8px 10px; font-size:0.9rem; }
+    th { background:#f5f5f5; text-align:left; }
+    caption { text-align:left; font-weight:600; margin-bottom:4px; }
+    .tag { display:inline-block; background:#eef; color:#113; padding:2px 6px; border-radius:4px; margin:2px 4px 2px 0; font-size:0.75rem; }
+    .count-box { display:flex; gap:16px; flex-wrap:wrap; margin:20px 0; }
+    .count { flex:1 1 160px; background:#fafafa; border:1px solid #ddd; padding:12px; border-radius:6px; }
+    .count h3 { margin:0 0 6px; font-size:0.95rem; font-weight:600; }
+    footer { margin-top:40px; font-size:0.7rem; color:#666; }
+    .note { background:#fffbe6; border:1px solid #e6d77a; padding:10px 14px; border-radius:6px; font-size:0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>Payments Domain API Overview</h1>
+  <p class="note">Public, vendor-neutral illustration of core functional API areas for a typical retail / corporate payments platform. All names are generic; endpoints, logos, connectors, release timelines and proprietary references intentionally removed.</p>
+
+  <h2>Summary Counts</h2>
+  <div class="count-box">
+    <div class="count"><h3>Payment Lifecycle</h3><strong>4 APIs</strong><br/><span class="tag">Initiation</span><span class="tag">Validation</span><span class="tag">Status</span><span class="tag">Cancellation</span></div>
+    <div class="count"><h3>Instruction Management</h3><strong>2 APIs</strong><br/><span class="tag">Standing Instruction Create</span><span class="tag">Standing Instruction Amend</span></div>
+    <div class="count"><h3>Enrichment & Reference</h3><strong>3 APIs</strong><br/><span class="tag">Bank Details Lookup</span><span class="tag">Fee / Cost Estimation</span><span class="tag">Holiday / Cut-off Calendar</span></div>
+    <div class="count"><h3>Ancillary / Optional</h3><strong>3 APIs</strong><br/><span class="tag">Bulk Upload</span><span class="tag">Amend Payment</span><span class="tag">Retry / Resubmit</span></div>
+  </div>
+
+  <h2>Functional Grouping</h2>
+  <table>
+    <caption>Core Payment API Families</caption>
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>Representative API Name (Generic)</th>
+        <th>Purpose</th>
+        <th>Typical Interactions / Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td rowspan="4">Payment Lifecycle</td>
+        <td>Payment Initiation API</td>
+        <td>Submit new domestic or cross-border payment order.</td>
+        <td>Captures amount, debtor/beneficiary, scheme preferences, charge bearer.</td>
+      </tr>
+      <tr>
+        <td>Payment Validation API</td>
+        <td>Pre-submit structural & rule checks (format, cut-off, limits).</td>
+        <td>Often invoked client-side or in orchestration to reduce rejections.</td>
+      </tr>
+      <tr>
+        <td>Payment Status API</td>
+        <td>Retrieve current processing state & timestamps.</td>
+        <td>Supports polling or event-driven subscription patterns.</td>
+      </tr>
+      <tr>
+        <td>Payment Cancellation API</td>
+        <td>Request cancellation before irrevocable stage.</td>
+        <td>Enforces window & reason code taxonomy.</td>
+      </tr>
+      <tr>
+        <td rowspan="2">Instruction Management</td>
+        <td>Standing Instruction Create API</td>
+        <td>Create recurring payment pattern (frequency, start/end).</td>
+        <td>Handles business-day shift & holiday overrides.</td>
+      </tr>
+      <tr>
+        <td>Standing Instruction Amend API</td>
+        <td>Modify schedule, amounts, beneficiaries, or suspend.</td>
+        <td>Maintains audit trail of recurrence changes.</td>
+      </tr>
+      <tr>
+        <td rowspan="3">Enrichment & Reference</td>
+        <td>Bank Details Lookup API</td>
+        <td>Resolve bank codes (BIC / local routing) & metadata.</td>
+        <td>Improves STP by validating clearing identifiers.</td>
+      </tr>
+      <tr>
+        <td>Fee Estimation API</td>
+        <td>Calculate indicative charges & FX impacts pre-commit.</td>
+        <td>Can return breakdown (service, scheme, FX, tax).</td>
+      </tr>
+      <tr>
+        <td>Holiday / Cut-off Calendar API</td>
+        <td>Expose settlement holidays & processing windows.</td>
+        <td>Used for SLA projections & scheduling decisions.</td>
+      </tr>
+      <tr>
+        <td rowspan="3">Ancillary / Optional</td>
+        <td>Bulk Upload API</td>
+        <td>Submit batched payment instructions.</td>
+        <td>Includes file format validation & partial acceptance rules.</td>
+      </tr>
+      <tr>
+        <td>Payment Amendment API</td>
+        <td>Adjust non-fundamental fields (e.g., remittance info).</td>
+        <td>Restricted after certain processing milestones.</td>
+      </tr>
+      <tr>
+        <td>Payment Retry / Resubmit API</td>
+        <td>Resubmit previously failed/held payments.</td>
+        <td>Captures retry reason & final outcome metrics.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Illustrative Lifecycle States (Generic)</h2>
+  <p class="note">Example states: <strong>Created → Validated → Accepted → In-Processing → Cleared/Settled → Failed/Rejected → Cancelled</strong>. Status API typically surfaces transitions & timestamps; cancellation allowed only before irrevocable point.</p>
+
+  <h2>Data Quality & Validation Themes</h2>
+  <ul>
+    <li>Format integrity (IBAN structure, routing code length, account checksum).</li>
+    <li>Business rule compliance (cut-off times, amount limits, channel entitlements).</li>
+    <li>Reference enrichment (bank code resolution, fee/FX pre-calculation).</li>
+    <li>Temporal logic (holiday calendar adjustments, next execution date).</li>
+    <li>Idempotency & duplication prevention in initiation.</li>
+  </ul>
+
+  <h2>Security & Governance (Generic)</h2>
+  <ul>
+    <li>API auth: OAuth2 / mutual TLS (implementation-specific).</li>
+    <li>Idempotency keys for initiation & bulk operations.</li>
+    <li>Audit trails for amendment, cancellation, retry events.</li>
+    <li>Rate limiting on lookup/enrichment endpoints.</li>
+    <li>Structured error taxonomy (validation vs processing vs system).</li>
+  </ul>
+
+  <h2>FAQ (Generic, Non-Vendor)</h2>
+  <p><strong>Q:</strong> Why separate validation from initiation? <br/> <strong>A:</strong> Early feedback reduces downstream rejects & improves UX responsiveness.</p>
+  <p><strong>Q:</strong> Are fee estimates guaranteed? <br/> <strong>A:</strong> Typically indicative; final charges determined post-routing.</p>
+  <p><strong>Q:</strong> Is event streaming required for status? <br/> <strong>A:</strong> Not strictly; polling suffices for low-volume or less time-sensitive use cases.</p>
+
+  <footer>
+    Generic informational example. No proprietary endpoints, product names, release dates, logos, connectors, or vendor references included.
+  </footer>
+</body>
+</html>
